@@ -258,7 +258,9 @@ async function reportData() {
     total: current.total, matched: current.matched, exceptions: current.exceptions, openExceptions: current.open,
     matchRate: current.total ? Number((current.matched / current.total * 100).toFixed(1)) : 0,
     autoResolutionRate: current.exceptions ? Number((current.resolved / current.exceptions * 100).toFixed(1)) : 0,
-    recoveredValue: recs.filter(r => actions.get(r.id) === 'resolve').reduce((sum, r) => sum + Math.abs(r.difference || 0), 0)
+    recoveredValue: recs.filter(r => actions.get(r.id) === 'resolve').reduce((sum, r) => sum + Math.abs(r.difference || 0), 0),
+    reconciledValue: recs.filter(r => r.status === 'Matched').reduce((sum, r) => sum + Math.abs(r.payment?.amount || 0), 0),
+    atRiskValue: riskStats.atRiskValue
   }, byPattern, byType, aging, severity, statusBreakdown, states, comparison, risk: riskBlock, recurring: pipeline.recurring };
 }
 
@@ -313,7 +315,7 @@ const server = http.createServer(async (req, res) => {
       const token = crypto.randomBytes(24).toString('hex');
       const user = { name: 'Arjun Shah', email: 'demo@clario.ai', role: 'Finance admin' };
       sessions.set(token, user);
-      recordAudit('User signed in', user.email, 'active');
+      recordAudit({ title: 'User signed in', detail: user.email, kind: 'active', actor: user.email });
       return json(res, 200, { token, user });
     }
     if (url.pathname === '/api/auth/register' && req.method === 'POST') {
