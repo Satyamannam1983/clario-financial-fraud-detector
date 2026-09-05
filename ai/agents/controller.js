@@ -111,6 +111,30 @@ async function pageQueryResponse(page, message) {
   if (page === 'reports') {
     const runtimeApi = require('../runtime').getRuntime();
     const report = typeof runtimeApi.reportData === 'function' ? await runtimeApi.reportData() : null;
+    const question = String(message || '').toLowerCase();
+    if (report && /biggest|largest|most financial|costs the most|impact/.test(question)) {
+      const topImpact = Object.entries(report.byType || {}).sort((a, b) => b[1].impact - a[1].impact)[0];
+      return createState({ success: true, agent: 'query', action: 'report_impact', final_response: topImpact
+        ? `The biggest financial impact is ${topImpact[0].replace(/_/g, ' ')}: ${topImpact[1].count} cases affecting ${inr(topImpact[1].impact)}. Start with the highest-value flagged transaction in that group, then review whether the variance is recoverable or needs escalation.`
+        : 'No exception type currently has a measurable financial impact.' });
+    }
+    if (report && /investigate first|what should i investigate|where should i start|priority/.test(question)) {
+      const first = (report.risk?.flagged || [])[0];
+      return createState({ success: true, agent: 'query', action: 'report_priority', final_response: first
+        ? `Investigate ${first.id} first. It is ${first.tier} risk at ${first.score}/100, with ${first.reason.toLowerCase()} and ${inr(first.impact)} at stake. Open its case report to review evidence before choosing hold, resolve, or escalate.`
+        : 'There are no flagged transactions requiring investigation right now.' });
+    }
+    if (report && /summari[sz]e|manager|executive|brief me/.test(question)) {
+      const cur = report.comparison?.current || {};
+      return createState({ success: true, agent: 'query', action: 'report_summary', final_response: `Manager summary: ${cur.matchRate}% of ${cur.total} records matched, with ${report.metrics?.openExceptions ?? cur.exceptions} open exceptions. The primary control concern is ${report.risk?.rootCause?.pattern || 'the current exception mix'}, and at-risk value is ${inr(report.risk?.stats?.atRiskValue || 0)}. Recommended focus: investigate the highest-risk flagged case and keep policy-blocked cases under human review.` });
+    }
+    if (report && /match rate|compare|previous run|improve|decline/.test(question)) {
+      const prev = report.comparison?.previous, cur = report.comparison?.current;
+      if (prev && cur) {
+        const delta = (cur.matchRate - prev.matchRate).toFixed(1);
+        return createState({ success: true, agent: 'query', action: 'report_comparison', final_response: `Match rate is ${cur.matchRate}% now versus ${prev.matchRate}% previously (${delta >= 0 ? '+' : ''}${delta} points). ${cur.matched - prev.matched} more records matched in the current run, while exceptions moved from ${prev.exceptions} to ${cur.exceptions}.` });
+      }
+    }
     if (report && /risk|fraud|trend|flagged|at.?risk|high.?risk|why.*(increase|rise|up)/.test(message)) {
       const rz = report.risk || {}; const st = rz.stats || {}; const tr = rz.trend || []; const root = rz.rootCause;
       const trendLine = tr.length ? `\n- Weekly trend: ${tr.map(t => `${t.week}: ${t.high} high/${t.medium} med`).join(', ')}` : '';
@@ -192,6 +216,9 @@ async function handle(message, options = {}) {
   const text = String(message || '').trim();
   if (!text) {
     return { success: false, agent: 'controller', action: 'invalid_request', response: 'Send a finance request such as "Run reconciliation" or "Investigate RZP-1047".', confidence: null };
+  }
+  if (/^(hi|hello|hey|good morning|good afternoon|good evening)\b/i.test(text)) {
+    return { success: true, agent: 'controller', action: 'greeting', response: 'Hello — I am Clario, your finance control analyst. I can explain risk, compare reconciliation runs, identify the highest-impact exception, or guide your next investigation.', confidence: null };
   }
   const intent = await route(text);
   const context = options?.context || {};

@@ -149,7 +149,7 @@ Password: ClarioDemo123!
 | `MONGODB_URI` | Optional | MongoDB Atlas connection string. Without it, all state is in-memory (lost on restart). |
 | `MONGODB_DB` | Optional | Database name. Default: `ledgerpilot` |
 | `MISTRAL_API_KEY` | Optional | Mistral AI key for narrative assessments. Without it, the system uses deterministic fallbacks. |
-| `MISTRAL_MODEL` | Optional | Mistral model ID. Default: `mistral-small-latest` |
+| `MISTRAL_MODEL` | Optional | Mistral model ID. Default: `mistral-small-2506` |
 | `PORT` | Optional | Server port. Default: `3001` |
 
 See `.env.example` for the full template.
@@ -254,6 +254,27 @@ Collections: `records` · `actions` · `audit` · `activity` · `investigations`
 
 6. After deploy, open the Vercel URL — the demo credentials work identically.
 
+### Deployment checklist
+
+- Confirm `MONGODB_URI` uses a production Atlas user with access from Vercel.
+- Add `MONGODB_DB`, `MISTRAL_API_KEY`, and `MISTRAL_MODEL` in Vercel.
+- Never paste API keys into source code, README files, browser code, or Git history.
+- Verify `GET https://<your-domain>/api/health` reports the expected database and AI status.
+- Test login, reconciliation, an exception investigation, and a Reports question after deployment.
+- Keep the Mistral key optional if deterministic fallback mode is acceptable for the demo.
+
+### Vercel CLI deployment
+
+```bash
+npm install
+npx vercel login
+npx vercel
+npx vercel --prod
+```
+
+Select the repository root as the project directory. Configure secrets with the Vercel
+dashboard or `vercel env add`; do not upload `.env`.
+
 ### Alternative: Deploy backend separately
 
 If you prefer more control (or need a persistent WebSocket/long-running process):
@@ -270,6 +291,7 @@ In that case, update `API_BASE` in `app.js` or set it from an environment variab
 - Sessions are in-memory. A cold Vercel start loses active login sessions (users re-authenticate).
 - Without `MONGODB_URI`, all data is lost on server restart.
 - The demo account (`demo@clario.ai`) is the only pre-configured user; others can register in-session.
+- Registration accounts are held in memory in the current demo implementation and are not durable across cold starts.
 
 ---
 

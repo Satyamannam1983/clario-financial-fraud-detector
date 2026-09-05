@@ -17,8 +17,8 @@ async function completeJson(system, user, fallback) {
       },
       signal: controller.signal,
       body: JSON.stringify({
-        model: process.env.MISTRAL_MODEL || 'mistral-small-latest',
-        temperature: 0.1,
+        model: process.env.MISTRAL_MODEL || 'mistral-small-2506',
+        temperature: 0.25,
         response_format: { type: 'json_object' },
         messages: [
           { role: 'system', content: system },

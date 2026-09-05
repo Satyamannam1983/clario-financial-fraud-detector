@@ -21,7 +21,8 @@ loadEnv();
 const root = __dirname;
 const port = Number(process.env.PORT || 3001);
 const sessions = new Map();
-const users = new Map([['demo@clario.ai', { name: 'Arjun Shah', email: 'demo@clario.ai', role: 'Finance admin' }]]);
+const hashPassword = password => crypto.createHash('sha256').update(String(password)).digest('hex');
+const users = new Map([['demo@clario.ai', { name: 'Arjun Shah', email: 'demo@clario.ai', role: 'Finance admin', passwordHash: hashPassword('ClarioDemo123!') }]]);
 const audit = [];
 const actions = new Map();
 const investigations = new Map();
@@ -311,9 +312,11 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/health') return json(res, 200, { ok: true, service: 'clario-api', database: databaseReady ? 'connected' : 'demo', mistral: ai.available(), aiMode: ai.available() ? 'mistral' : 'deterministic', message: ai.available() ? 'Mistral is configured.' : 'Mistral API key is not configured; deterministic evidence mode is active.' });
     if (url.pathname === '/api/auth/login' && req.method === 'POST') {
       const body = await readBody(req);
-      if (body.email?.trim().toLowerCase() !== 'demo@clario.ai' || body.password !== 'ClarioDemo123!') return json(res, 401, { error: 'Invalid demo credentials' });
+      const email = String(body.email || '').trim().toLowerCase();
+      const userRecord = users.get(email);
+      if (!userRecord || userRecord.passwordHash !== hashPassword(body.password || '')) return json(res, 401, { error: 'Invalid email or password' });
       const token = crypto.randomBytes(24).toString('hex');
-      const user = { name: 'Arjun Shah', email: 'demo@clario.ai', role: 'Finance admin' };
+      const { passwordHash, ...user } = userRecord;
       sessions.set(token, user);
       recordAudit({ title: 'User signed in', detail: user.email, kind: 'active', actor: user.email });
       return json(res, 200, { token, user });
@@ -326,7 +329,7 @@ const server = http.createServer(async (req, res) => {
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return json(res, 400, { error: 'Enter a valid email address' });
       if (password.length < 8) return json(res, 400, { error: 'Password must be at least 8 characters' });
       if (users.has(email)) return json(res, 409, { error: 'An account already exists for this email' });
-      const user = { name: name || email.split('@')[0], email, role: 'Finance admin' };
+      const user = { name: name || email.split('@')[0], email, role: 'Finance admin', passwordHash: hashPassword(password) };
       users.set(email, user);
       const token = crypto.randomBytes(24).toString('hex');
       sessions.set(token, user);

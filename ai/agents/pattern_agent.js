@@ -87,12 +87,22 @@ async function list_unresolved() {
   const records = await finance.get_transactions();
   const { getAction } = require('../runtime').getRuntime();
   const open = records.filter(record => record.status !== 'Matched' && getAction(record.id) !== 'resolve' && getAction(record.id) !== 'approve');
-  const lines = open.slice(0, 12).map(record => `${record.id} · ${record.pattern} · ${finance.money(record.payment.amount)} · ${record.confidence}`);
+  const lines = open.map(record => `${record.id} · ${record.pattern.replace(/_/g, ' ')} · ${finance.money(record.payment.amount)} · ${record.confidence}`);
+  const byPattern = open.reduce((counts, record) => {
+    counts[record.pattern] = (counts[record.pattern] || 0) + 1;
+    return counts;
+  }, {});
+  const patternSummary = Object.entries(byPattern).map(([pattern, count]) => `${pattern.replace(/_/g, ' ')} (${count})`).join(', ');
+  const priority = open
+    .map(record => ({ record, score: record.risk?.score || (record.pattern === 'missing_settlement' ? 78 : 0) }))
+    .sort((a, b) => b.score - a.score)[0];
   return createState({
     success: true,
     agent: 'query',
     action: 'list_unresolved',
-    final_response: open.length ? `Unresolved exceptions (${open.length}):\n${lines.join('\n')}` : 'There are no unresolved exceptions in the current ledger.'
+    final_response: open.length
+      ? `I found ${open.length} unresolved exception${open.length === 1 ? '' : 's'} in the current ledger.\n\nBy type: ${patternSummary}\n\n${lines.join('\n')}\n\nPriority: investigate ${priority.record.id} first (${priority.record.pattern.replace(/_/g, ' ')}, ${finance.money(priority.record.payment.amount)}). Ask "Why is ${priority.record.id} risky?" or "Investigate ${priority.record.id}" to open its evidence-backed case report.`
+      : 'There are no unresolved exceptions in the current ledger.'
   });
 }
 

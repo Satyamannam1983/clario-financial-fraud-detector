@@ -10,7 +10,7 @@
  *   MONGODB_URI      — MongoDB Atlas connection string (required for persistence)
  *   MONGODB_DB       — database name (default: ledgerpilot)
  *   MISTRAL_API_KEY  — Mistral AI key (optional; deterministic fallback if absent)
- *   MISTRAL_MODEL    — model id (default: mistral-small-latest)
+ *   MISTRAL_MODEL    — model id (default: mistral-small-2506)
  */
 
 'use strict';

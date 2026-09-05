@@ -59,6 +59,18 @@ const records = matchedRecords.slice(0, 5).map(record => [
   record.status === 'Matched' ? 'green' : record.severity === 'Critical' ? 'orange' : 'yellow'
 ]);
 function money(value) { return `₹${(Number(value)||0).toLocaleString('en-IN')}`; }
+function patternLabel(pattern) {
+  return {
+    amount_mismatch: 'Amount mismatch',
+    missing_settlement: 'Missing settlement',
+    duplicate: 'Duplicate transaction',
+    fee_variance: 'Fee variance',
+    refund_mismatch: 'Refund mismatch',
+    settlement_delay: 'Settlement delay',
+    fuzzy: 'Fuzzy match',
+    exact: 'Matched'
+  }[pattern] || 'Exception';
+}
 function moneyShort(value){const n=Number(value)||0;if(n>=10000000)return `₹${(n/10000000).toFixed(2)}Cr`;if(n>=100000)return `₹${(n/100000).toFixed(2)}L`;if(n>=1000)return `₹${(n/1000).toFixed(1)}K`;return `₹${n.toLocaleString('en-IN')}`}
 const pages = {
  overview:{label:'Overview', html:`<div class="page overview-page"><div class="hero-kicker">CLARIO / FINANCE CONTROL CENTER <span>04 SEP 2026</span></div><div class="hero-copy"><div><h1>Reconciliation<br><em>under control.</em></h1><p>Track match quality, surface exceptions early, and move every financial record toward resolution.</p><div class="hero-signal"><div class="hero-signal-copy"><span>LIVE MATCH RATE</span><strong>94.5%</strong><b>↑ 2.1% from last run</b></div><div class="hero-sparkline" aria-label="Match rate trend"><i style="height:42%"></i><i style="height:56%"></i><i style="height:49%"></i><i style="height:72%"></i><i style="height:67%"></i><i style="height:86%"></i><i style="height:100%"></i></div></div></div><button class="hero-cta" id="hero-run">Run Reconciliation <b>→</b></button></div><div class="ai-float"><span class="ai-orb">✦</span><div><b>AI analyzing settlement patterns...</b><small>7 exceptions in focus</small><div class="ai-progress"><i></i></div></div><strong>ACTIVE</strong></div>
@@ -103,7 +115,7 @@ function investigationPage(){
 function exceptionsPage(){return `<div class="page"><div class="eyebrow">WORKSPACE / ATTENTION QUEUE</div><h1 class="page-title">Exception Center</h1><p class="page-subtitle">Prioritize anomalies and move the queue toward resolution.</p><div class="summary">${summary('7','Open','exceptions')}${summary('1','Critical','exceptions')}${summary('3','Needs Review','exceptions')}${summary('3','Explainable','exceptions')}</div><div class="exception-toolbar"><span>7 exceptions</span><button class="filter">Sort: Severity⌄</button><button class="filter">All types⌄</button><button class="filter">All statuses⌄</button></div><div class="exception-cards">${exceptionCard('RZP-1047','Missing settlement','₹12,500','Payment was successfully captured, but no corresponding settlement record was found.','91%','orange')}${exceptionCard('RZP-1031','Settlement mismatch','₹550','Settlement is lower than the expected value after an unrecognized adjustment.','84%','yellow')}${exceptionCard('RZP-1018','Duplicate payment','₹1,800','Two payment captures reference the same order within a 30 second window.','97%','green')}</div></div>`}
 function summary(v,l,page){return `<div class="card summary-card clickable-card" data-page-link="${page}"><strong>${v}</strong><span>${l}</span><span class="card-arrow">↗</span></div>`}
 function exceptionCard(id,issue,price,desc,confidence,color,state){const stateLabel=state==='on_hold'?'ON HOLD':state==='escalated'?'ESCALATED':state==='approved'?'APPROVED':state==='resolved'?'RESOLVED':color==='orange'?'OPEN':'REVIEW';return `<div class="card exception-card"><div class="card-top"><span class="status ${state==='on_hold'||state==='escalated'?'orange':'green'}">${stateLabel}</span></div><h3>${id}</h3><div class="issue">${issue}</div><div class="price">${price}</div><p>AI Assessment: ${desc}</p><div class="confidence-line"><span>CONFIDENCE</span><b>${confidence}</b></div><div class="exception-actions"><button class="btn btn-secondary investigate-btn" data-investigate="${id}">Investigate →</button><button class="btn btn-secondary hold-exception" data-exception-id="${id}" ${state==='on_hold'?'disabled':''}>${state==='on_hold'?'On Hold':'Hold'}</button><button class="btn btn-primary resolve-exception" data-exception-id="${id}">Resolve</button></div></div>`}
-function overviewCard(record){const kind=record.status==='Matched'?'matched':record.status==='Needs Review'?'fuzzy':'exception';const label=record.status==='Matched'?'MATCHED':record.status==='Needs Review'?'NEEDS REVIEW':record.severity.toUpperCase();const issue=record.status==='Matched'?'Payment · Order · Settlement verified':record.pattern==='missing_settlement'?'Missing settlement':record.pattern==='duplicate'?'Duplicate transaction':record.pattern==='fuzzy'?'Customer reference similar':'Amount mismatch';return `<button class="data-card ${kind}" data-investigate="${record.id}"><div class="data-card-top"><span class="card-type">${kind==='matched'?'TRANSACTION':kind==='fuzzy'?'FUZZY MATCH':'EXCEPTION'}</span><span class="status ${kind==='matched'?'green':kind==='fuzzy'?'yellow':'orange'}">${label}</span></div><b class="data-card-id">${record.id}</b><strong class="data-card-amount">${money(record.payment.amount)}</strong><span class="data-card-issue">${issue}</span><div class="data-card-foot"><span>${record.status==='Matched'?'Payment ✓ · Order ✓ · Settlement ✓':`${record.confidence} confidence`}</span><em>Investigate →</em></div></button>`}
+function overviewCard(record){const kind=record.status==='Matched'?'matched':record.status==='Needs Review'?'fuzzy':'exception';const label=record.status==='Matched'?'MATCHED':record.status==='Needs Review'?'NEEDS REVIEW':record.severity.toUpperCase();const issue=record.status==='Matched'?'Payment · Order · Settlement verified':patternLabel(record.pattern);return `<button type="button" class="data-card ${kind}" data-investigate="${record.id}" aria-label="Open transaction ${record.id}"><div class="data-card-top"><span class="card-type">${kind==='matched'?'TRANSACTION':kind==='fuzzy'?'FUZZY MATCH':'EXCEPTION'}</span><span class="status ${kind==='matched'?'green':kind==='fuzzy'?'yellow':'orange'}">${label}</span></div><b class="data-card-id">${record.id}</b><strong class="data-card-amount">${money(record.payment.amount)}</strong><span class="data-card-issue">${issue}</span><div class="data-card-foot"><span>${record.status==='Matched'?'Payment ✓ · Order ✓ · Settlement ✓':`${record.confidence} confidence`}</span><em>${record.status==='Matched'?'View transaction →':'Investigate →'}</em></div></button>`}
 function agentsChips(){const agents=workspaceState.agents.length?workspaceState.agents:['controller','reconciliation','investigation','pattern','resolution'].map(a=>({id:a,name:a[0].toUpperCase()+a.slice(1)}));return agents.map(a=>`<span class="agent-chip"><i></i>${a.name}</span>`).join('')}
 function overviewPage(){const data=window.ledgerPilotData;const metrics=dashboardMetrics();const open=data.summary.open??data.summary.exceptions;const records=data.records.filter(r=>r.resolution!=='resolve');const cards=[...records.filter(r=>r.status==='Exception').slice(0,3),...records.filter(r=>r.status==='Matched').slice(0,2)].map(overviewCard).join('');const matched=data.summary.matched;const total=data.summary.total;const rate=((matched/total)*100).toFixed(1);const recentEvents=workspaceState.activity.slice(0,4);const recentExceptions=records.filter(r=>r.status!=='Matched').slice(0,4);const recentRuns=workspaceState.runs.slice(0,3);
 const capturedStr=moneyShort(metrics.captured);
@@ -123,7 +135,7 @@ return `<div class="page overview-page"><div class="hero-kicker">CLARIO / FINANC
   ['reports','◫','Reports','Operational summaries and resolution mix'],
   ['settings','⚙','Settings','Manage sources, thresholds and preferences']
 ].map(([p,icon,label,desc])=>`<button class="page-link-card" data-page-link="${p}"><span class="page-link-icon">${icon}</span><div><b>${label}</b><small>${desc}</small></div><span class="row-arrow">→</span></button>`).join('')}</div></section></div>`}
-function liveExceptionsPage(){const data=window.ledgerPilotData;const records=data.records.filter(r=>r.status!=='Matched'&&r.resolution!=='resolve');return `<div class="page"><div class="eyebrow">WORKSPACE / ATTENTION QUEUE</div><h1 class="page-title">Exception Center</h1><p class="page-subtitle">Prioritize anomalies and move the queue toward resolution.</p><div class="summary">${summary(String(records.length),'Open','exceptions')}${summary(String(records.filter(r=>r.severity==='Critical').length),'Critical','exceptions')}${summary(String(records.filter(r=>r.status==='Needs Review').length),'Needs Review','exceptions')}${summary(String(records.filter(r=>r.confidence.replace('%','')>=90).length),'Explainable','exceptions')}</div><div class="exception-toolbar"><span>${records.length} exceptions</span><button class="filter">Sort: Severity⌄</button><button class="filter">All types⌄</button><button class="filter">All statuses⌄</button></div><div class="exception-cards">${records.slice(0,6).map(record=>exceptionCard(record.id,record.pattern==='missing_settlement'?'Missing settlement':record.pattern==='duplicate'?'Duplicate transaction':record.pattern==='fuzzy'?'Fuzzy match':'Amount mismatch',money(record.payment.amount),record.reasons[0]||'Review transaction evidence.',record.confidence,record.severity==='Critical'?'orange':record.status==='Needs Review'?'yellow':'green',record.state)).join('')}</div><section class="card exception-ask-card"><div><div class="eyebrow">CONTEXTUAL AI</div><h2>Ask about this queue</h2><p>Use a transaction card to open its full investigation, or ask Clario which exception needs attention first.</p></div><button class="btn btn-secondary" id="exception-ask">Ask Clario</button></section></div>`}
+function liveExceptionsPage(){const data=window.ledgerPilotData;const records=data.records.filter(r=>r.status!=='Matched'&&r.resolution!=='resolve');return `<div class="page"><div class="eyebrow">WORKSPACE / ATTENTION QUEUE</div><h1 class="page-title">Exception Center</h1><p class="page-subtitle">Prioritize anomalies and move the queue toward resolution.</p><div class="summary">${summary(String(records.length),'Open','exceptions')}${summary(String(records.filter(r=>r.severity==='Critical').length),'Critical','exceptions')}${summary(String(records.filter(r=>r.status==='Needs Review').length),'Needs Review','exceptions')}${summary(String(records.filter(r=>r.confidence.replace('%','')>=90).length),'Explainable','exceptions')}</div><div class="exception-toolbar"><span>${records.length} exceptions</span><button class="filter">Sort: Severity⌄</button><button class="filter">All types⌄</button><button class="filter">All statuses⌄</button></div><div class="exception-cards">${records.slice(0,6).map(record=>exceptionCard(record.id,patternLabel(record.pattern),money(record.payment.amount),record.reasons[0]||'Review transaction evidence.',record.confidence,record.severity==='Critical'?'orange':record.status==='Needs Review'?'yellow':'green',record.state)).join('')}</div><section class="card exception-ask-card"><div><div class="eyebrow">CONTEXTUAL AI</div><h2>Ask about this queue</h2><p>Use a transaction card to open its full investigation, or ask Clario which exception needs attention first.</p></div><button class="btn btn-secondary" id="exception-ask">Ask Clario</button></section></div>`}
 function activityChecklist(event){const text=`${event.title}: ${event.detail||''}`.trim();const id=(text.match(/RZP-\d+/i)||[])[0]||'';return `<div class="activity-check ${event.kind==='warning'?'warn':''}"><label><input type="checkbox" ${event.kind==='done'?'checked':''} /><span class="check-mark">${event.kind==='warning'?'!':event.kind==='active'?'◉':'✓'}</span><span class="activity-copy"><b>${event.title}</b><small>${event.detail||'Clario controller event'}</small></span><time>${new Date(event.time||Date.now()).toLocaleTimeString()}</time></label><div class="activity-actions"><button class="activity-ask" data-ask="${text}">Ask Clario</button>${id?`<button class="activity-investigate" data-investigate="${id}">Investigate</button>`:''}<button class="activity-report" data-report="${text}">Report</button></div></div>`}
 function liveAuditPage(){const events=workspaceState.audit;const rows=(events.length?events:[{time:new Date().toISOString(),title:'No events yet',detail:'Run reconciliation to create an audit trail.',kind:'active'}]).map(event=>`<div class="audit-row" data-title="${String((event.title||'')+' '+(event.detail||'')).replace(/"/g,'&quot;')}" data-kind="${event.kind||'done'}"><time>${new Date(event.time).toLocaleTimeString()}</time><i class="${event.kind||'done'}">${(event.kind||'done')==='warning'?'!':(event.kind||'done')==='active'?'◉':'✓'}</i><div><b>${event.title}</b><span>${event.detail||''}</span></div></div>`).join('');return `<div class="page"><div class="eyebrow">INSIGHTS / CONTROL LOG</div><h1 class="page-title">Audit Trail</h1><p class="page-subtitle">Every agent action, evidence source, and finance decision in one place.</p><section class="card section-card audit-card"><div class="card-heading"><div><div class="card-title">Control log <span id="audit-count" class="audit-count">${events.length} events</span></div><div class="card-note">Filter by kind or search the log</div></div><button id="audit-export" class="btn btn-secondary">Export CSV</button></div><div class="audit-toolbar"><input id="audit-search" class="filter search-input" placeholder="Search title or detail..." /><button class="filter audit-filter active-filter" data-kind="all">All</button><button class="filter audit-filter" data-kind="done">Done</button><button class="filter audit-filter" data-kind="warn">Warnings</button><button class="filter audit-filter" data-kind="active">Active</button></div><div class="audit-panel" id="audit-events">${rows}</div></section></div>`}
 function liveActivityPage(){const events=workspaceState.activity.length?workspaceState.activity:workspaceState.audit;const agents=workspaceState.agents;const agentCards=agents.map(a=>`<div class="agent-card"><span class="agent-dot"></span><div><b>${a.name}</b><small>${a.role}</small></div><strong>${a.executions||0} runs</strong><em>${a.lastAt?new Date(a.lastAt).toLocaleTimeString():'idle'}</em></div>`).join('');return `<div class="page"><div class="eyebrow">WORKSPACE / AUTOMATION</div><h1 class="page-title">AI Agent Activity</h1><p class="page-subtitle">Check off completed work, ask Clario about an event, investigate a record, or generate a report.</p>${agentCards?`<div class="agents-grid"><div class="agents-heading"><div class="eyebrow">AGENTS ONLINE</div><h2>Clario agent fleet</h2></div>${agentCards}</div>`:''}<section class="card section-card"><div class="card-heading"><div><div class="card-title">Live Clario activity</div><div class="card-note">${events.length} auditable events · Mistral controller connected when configured</div></div><span class="status green">CONNECTED</span></div><div class="activity-checklist">${(events.length?events:[{title:'No agent activity yet',detail:'Run reconciliation to start the controller.',kind:'active'}]).map(activityChecklist).join('')}</div></section></div>`}
@@ -225,7 +237,7 @@ async function loadRiskTimeline(id){
     el.innerHTML=timeline.map(step=>`<div class="timeline-row ${step.kind}"><div class="timeline-time">${step.time}</div><div class="timeline-node"></div><div class="timeline-copy"><b>${step.title}</b><small>${step.detail}</small></div></div>`).join('');
   }catch(error){el.innerHTML='<div class="muted">Timeline unavailable right now.</div>'}
 }
-function bindPageEvents(){document.querySelectorAll('[data-page-link]').forEach(b=>b.onclick=(event)=>{event.stopPropagation();render(b.dataset.pageLink)});const heroRun=document.querySelector('#hero-run');if(heroRun)heroRun.onclick=()=>document.querySelector('#run-reconciliation').click();document.querySelectorAll('[data-transaction],[data-investigate]').forEach(b=>b.onclick=()=>openDrawer(b.dataset.transaction||b.dataset.investigate));document.querySelectorAll('.resolve-exception').forEach(b=>b.onclick=async()=>{const id=b.dataset.exceptionId;b.disabled=true;b.textContent='Resolving…';try{await api(`/exceptions/${id}/resolve`,{method:'POST'});await hydrateData();await hydrateWorkspace();toast(`${id} resolved and added to the audit trail`);render(currentPage)}catch(error){b.disabled=false;b.textContent='Resolve';toast(error.message)}});const records=document.querySelectorAll('.smart-record');const search=document.querySelector('.search-input');const applyRecordFilter=(filter)=>{const query=search?.value.trim().toLowerCase()||'';records.forEach(row=>{const textMatch=!query||row.textContent.toLowerCase().includes(query);const filterMatch=filter==='All'||(filter==='Missing'&&row.dataset.recordMissing==='true')||(filter==='Exceptions'&&row.dataset.recordStatus!=='Matched')||(filter==='Matched'&&row.dataset.recordStatus==='Matched');row.hidden=!(textMatch&&filterMatch)})};if(search)search.oninput=()=>applyRecordFilter(document.querySelector('.active-filter')?.textContent.trim()||'All');document.querySelectorAll('.filter:not(.search-input)').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active-filter'));b.classList.add('active-filter');applyRecordFilter(b.textContent.trim());toast(`${b.textContent.trim()} filter applied`)});bindHoldButtons();bindPageChats()}
+function bindPageEvents(){document.querySelectorAll('[data-page-link]').forEach(b=>b.onclick=(event)=>{event.stopPropagation();render(b.dataset.pageLink)});const heroRun=document.querySelector('#hero-run');if(heroRun)heroRun.onclick=()=>document.querySelector('#run-reconciliation').click();document.querySelectorAll('[data-transaction],[data-investigate]').forEach(b=>b.onclick=event=>{event.preventDefault();event.stopPropagation();openDrawer(b.dataset.transaction||b.dataset.investigate)});document.querySelectorAll('.resolve-exception').forEach(b=>b.onclick=async()=>{const id=b.dataset.exceptionId;b.disabled=true;b.textContent='Resolving…';try{await api(`/exceptions/${id}/resolve`,{method:'POST'});await hydrateData();await hydrateWorkspace();toast(`${id} resolved and added to the audit trail`);render(currentPage)}catch(error){b.disabled=false;b.textContent='Resolve';toast(error.message)}});const records=document.querySelectorAll('.smart-record');const search=document.querySelector('.search-input');const applyRecordFilter=(filter)=>{const query=search?.value.trim().toLowerCase()||'';records.forEach(row=>{const textMatch=!query||row.textContent.toLowerCase().includes(query);const filterMatch=filter==='All'||(filter==='Missing'&&row.dataset.recordMissing==='true')||(filter==='Exceptions'&&row.dataset.recordStatus!=='Matched')||(filter==='Matched'&&row.dataset.recordStatus==='Matched');row.hidden=!(textMatch&&filterMatch)})};if(search)search.oninput=()=>applyRecordFilter(document.querySelector('.active-filter')?.textContent.trim()||'All');document.querySelectorAll('.filter:not(.search-input)').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active-filter'));b.classList.add('active-filter');applyRecordFilter(b.textContent.trim());toast(`${b.textContent.trim()} filter applied`)});bindHoldButtons();bindPageChats()}
 function bindPageEvents(){document.querySelectorAll('[data-page-link]').forEach(b=>b.onclick=(event)=>{if(event.target.closest('.why-action'))return;event.stopPropagation();render(b.dataset.pageLink)});document.querySelectorAll('.why-action').forEach(b=>b.onclick=event=>{event.stopPropagation();toast(`${b.dataset.why}: ${b.dataset.whyValue} is calculated from the live reconciliation, risk, and action data.`)});const riskScore=document.querySelector('.ai-card-refined .risk-score-row');if(riskScore)riskScore.onclick=()=>{const signals=(matchedRecords.find(item=>item.id===investigationState?.id)?.risk?.breakdown||[]).map(item=>`${item.label}  +${item.points}`).join(' · ');toast(`Risk calculation: ${signals||'Evidence-based risk signals'} · Total ${investigationState?.risk?.score||'—'}`)};const heroRun=document.querySelector('#hero-run');if(heroRun)heroRun.onclick=()=>document.querySelector('#run-reconciliation').click();document.querySelectorAll('[data-transaction],[data-investigate]').forEach(b=>b.onclick=()=>openDrawer(b.dataset.transaction||b.dataset.investigate));document.querySelectorAll('.resolve-exception').forEach(b=>b.onclick=async()=>{const id=b.dataset.exceptionId;b.disabled=true;b.textContent='Resolving…';try{await api(`/exceptions/${id}/resolve`,{method:'POST'});await hydrateData();await hydrateWorkspace();toast(`${id} resolved and added to the audit trail`);render(currentPage)}catch(error){b.disabled=false;b.textContent='Resolve';toast(error.message)}});const records=document.querySelectorAll('.smart-record');const search=document.querySelector('.search-input');const applyRecordFilter=(filter)=>{const query=search?.value.trim().toLowerCase()||'';records.forEach(row=>{const textMatch=!query||row.textContent.toLowerCase().includes(query);const filterMatch=filter==='All'||(filter==='Missing'&&row.dataset.recordMissing==='true')||(filter==='Exceptions'&&row.dataset.recordStatus!=='Matched')||(filter==='Matched'&&row.dataset.recordStatus==='Matched');row.hidden=!(textMatch&&filterMatch)})};if(search)search.oninput=()=>applyRecordFilter(document.querySelector('.active-filter')?.textContent.trim()||'All');document.querySelectorAll('.filter:not(.search-input)').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active-filter'));b.classList.add('active-filter');applyRecordFilter(b.textContent.trim());toast(`${b.textContent.trim()} filter applied`)});bindHoldButtons();bindPageChats()}
 function bindHoldButtons(){
   document.querySelectorAll('.hold-exception').forEach(b=>b.onclick=async()=>{const id=b.dataset.exceptionId;b.disabled=true;b.textContent='Holding…';try{await api(`/exceptions/${id}/hold`,{method:'POST'});await hydrateData();await hydrateWorkspace();toast(`${id} placed on hold — automatic actions blocked`);render(currentPage)}catch(error){b.disabled=false;b.textContent='Hold';toast(error.message)}});
@@ -233,7 +245,7 @@ function bindHoldButtons(){
 function bindPageChats(){
   if(currentPage==='overview'){
     const form=document.querySelector('#overview-ask');
-    if(form)form.addEventListener('submit',event=>{event.preventDefault();const value=form.querySelector('input')?.value||'';if(!value.trim())return;askClario(value,{open:true})});
+    if(form)form.setAttribute('data-chat-form','overview');
   }
   if(currentPage==='investigation'&&investigationState){
     const container=document.querySelector('#inv-chat-messages');
@@ -241,7 +253,7 @@ function bindPageChats(){
     const send=document.querySelector('#inv-chat-send');
     const ask=()=>{const value=input?.value.trim();if(!value)return;askClario(value,{open:false,container,context:{id:investigationState.id}});if(input)input.focus()};
     if(send)send.onclick=()=>{void ask()};
-    if(input)input.addEventListener('keydown',event=>{if(event.key==='Enter')ask()});
+    if(input)input.onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();ask()}};
   }
   if(currentPage==='reports'){
     const container=document.querySelector('#report-chat-messages');
@@ -252,6 +264,7 @@ function bindPageChats(){
     if(send)send.onclick=ask;
     if(input)input.addEventListener('keydown',event=>{if(event.key==='Enter')ask()});
     document.querySelectorAll('.report-prompt').forEach(button=>button.onclick=()=>ask(button.dataset.prompt));
+    if(input)input.placeholder='Try: biggest impact, investigate first, compare runs...';
   }
   if(currentPage==='exceptions'){
     const askButton=document.querySelector('#exception-ask');
@@ -332,7 +345,7 @@ function openDrawer(id){
     </div>
     ${riskHtml}
     <div class="drawer-actions">
-      <button class="btn btn-primary" id="drawer-investigate" style="width:100%">Run AI Investigation</button>
+      ${exception?'<button class="btn btn-primary" id="drawer-investigate" style="width:100%">Run AI Investigation</button>':'<button class="btn btn-secondary" id="drawer-investigate" style="width:100%">Transaction verified</button>'}
       <button class="btn btn-secondary" id="drawer-hold" style="width:100%;margin-top:10px" ${record.state==='on_hold'?'disabled':''}>
         ${record.state==='on_hold'?'Already on hold':'Place on Hold'}
       </button>
@@ -355,6 +368,7 @@ function openDrawer(id){
     catch(error){b.disabled=false;b.textContent='Approve';toast(error.message)}
   };
   d.querySelector('#drawer-investigate').onclick=async()=>{
+    if(!exception){toast(`${id} is a matched transaction with verified payment, order, and settlement records`);return;}
     const button=d.querySelector('#drawer-investigate');
     button.disabled=true;button.textContent='Investigating…';
     try{const result=await api(`/exceptions/${id}/investigate`,{method:'POST'});investigationState={id,...result.investigation};await hydrateWorkspace();d.remove();render('investigation');toast('Evidence collected and recommendation generated')}
@@ -367,9 +381,10 @@ async function startReconciliation(){const button=document.querySelector('#run-r
 document.querySelector('#run-reconciliation').onclick=startReconciliation;
 const AUTH_KEY='clario.authenticated';
 function showLogin(){document.querySelector('.app-shell').hidden=true;document.querySelector('.assistant-bar').hidden=true;const chat=document.querySelector('#chat-panel');if(chat)chat.hidden=true;document.querySelector('#auth-screen').hidden=false;const loginCard=document.querySelector('#login-card');const signupCard=document.querySelector('#signup-card');if(loginCard)loginCard.hidden=false;if(signupCard)signupCard.hidden=true;document.querySelector('#login-email').focus()}
-async function showApp(){document.querySelector('#auth-screen').hidden=true;document.querySelector('.app-shell').hidden=false;document.querySelector('.assistant-bar').hidden=false;try{await hydrateData();await hydrateWorkspace()}catch(error){console.warn('Clario workspace data unavailable; using local data.',error.message)}render('overview')}
-async function authenticate(email,password){const result=await api('/auth/login',{method:'POST',body:JSON.stringify({email,password})});localStorage.setItem(TOKEN_KEY,result.token);localStorage.setItem(AUTH_KEY,'true');return true}
-async function register(name,email,password){const result=await api('/auth/register',{method:'POST',body:JSON.stringify({name,email,password})});localStorage.setItem(TOKEN_KEY,result.token);localStorage.setItem(AUTH_KEY,'true');return true}
+async function showApp(){const savedUser=JSON.parse(localStorage.getItem('clario.user')||'null');applyUser(savedUser);document.querySelector('#auth-screen').hidden=true;document.querySelector('.app-shell').hidden=false;document.querySelector('.assistant-bar').hidden=false;try{await hydrateData();await hydrateWorkspace()}catch(error){console.warn('Clario workspace data unavailable; using local data.',error.message)}render('overview')}
+function applyUser(user){if(!user)return;localStorage.setItem('clario.user',JSON.stringify(user));document.querySelectorAll('.user strong').forEach(el=>el.textContent=user.name);document.querySelectorAll('.user span').forEach(el=>el.textContent=user.role);const initials=(user.name||'').split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]).join('').toUpperCase();document.querySelectorAll('.user .avatar,.top-avatar').forEach(el=>el.textContent=initials||'AS')}
+async function authenticate(email,password){const result=await api('/auth/login',{method:'POST',body:JSON.stringify({email,password})});localStorage.setItem(TOKEN_KEY,result.token);localStorage.setItem(AUTH_KEY,'true');applyUser(result.user);return true}
+async function register(name,email,password){const result=await api('/auth/register',{method:'POST',body:JSON.stringify({name,email,password})});localStorage.setItem(TOKEN_KEY,result.token);localStorage.setItem(AUTH_KEY,'true');applyUser(result.user);return true}
 function showAuthCard(card){document.querySelector('#login-card').hidden=card!=='login';document.querySelector('#signup-card').hidden=card!=='signup'}
 document.querySelector('#go-signup').onclick=()=>{showAuthCard('signup');setTimeout(()=>document.querySelector('#signup-name')?.focus(),0)};
 document.querySelector('#go-login').onclick=()=>{showAuthCard('login');setTimeout(()=>document.querySelector('#login-email')?.focus(),0)};
@@ -399,7 +414,8 @@ document.querySelector('#logout-button').onclick = async () => {
 async function boot() {
   if (localStorage.getItem(TOKEN_KEY)) {
     try {
-      await api('/me');
+      const session=await api('/me');
+      applyUser(session.user);
       showApp();
     } catch (e) {
       showLogin();
@@ -430,9 +446,12 @@ document.querySelector('.search-trigger').onclick=()=>{if(currentPage!=='reconci
 document.querySelector('.bell').onclick=()=>toast('No new Clario notifications');
 function openChat(){
   const panel=document.querySelector('#chat-panel');
-  if(panel.hidden){panel.hidden=false;requestAnimationFrame(()=>document.querySelector('#chat-input')?.focus())}
+  if(!panel)return;
+  panel.hidden=false;
+  panel.setAttribute('aria-hidden','false');
+  requestAnimationFrame(()=>document.querySelector('#chat-input')?.focus());
 }
-function closeChat(){const panel=document.querySelector('#chat-panel');if(panel)panel.hidden=true}
+function closeChat(){const panel=document.querySelector('#chat-panel');if(panel){panel.hidden=true;panel.setAttribute('aria-hidden','true')}}
 function appendChatMessage(role,text,container){
   const messages=container||document.querySelector('#chat-messages');
   if(!messages)return;
@@ -442,6 +461,22 @@ function appendChatMessage(role,text,container){
   bubble.className='chat-bubble';
   bubble.textContent=text||'';
   wrap.appendChild(bubble);
+  if(role==='assistant'){
+    const ids=[...new Set((text||'').match(/RZP-\d+/gi)||[])].slice(0,6);
+    if(ids.length){
+      const actions=document.createElement('div');
+      actions.className='chat-case-actions';
+      ids.forEach(id=>{
+        const button=document.createElement('button');
+        button.className='chat-case-link';
+        button.type='button';
+        button.textContent=`Open ${id.toUpperCase()}`;
+        button.onclick=()=>openDrawer(id.toUpperCase());
+        actions.appendChild(button);
+      });
+      wrap.appendChild(actions);
+    }
+  }
   messages.appendChild(wrap);
   messages.scrollTop=messages.scrollHeight;
   return bubble;
@@ -494,6 +529,14 @@ document.querySelector('#assistant-send').onclick=()=>askClario();
 document.querySelector('#chat-send').onclick=()=>askClario();
 document.querySelector('#chat-input').addEventListener('keydown',event=>{if(event.key==='Enter')askClario()});
 document.querySelector('#chat-close').onclick=closeChat;
+document.addEventListener('submit',event=>{
+  const form=event.target.closest('#overview-ask');
+  if(!form)return;
+  event.preventDefault();
+  const input=form.querySelector('input');
+  const value=input?.value.trim()||'';
+  if(value)askClario(value,{open:true,context:{page:'overview'}});
+});
 document.addEventListener('click',event=>{
   const ask=event.target.closest('.activity-ask');
   if(ask){askClario(ask.dataset.ask);return}
