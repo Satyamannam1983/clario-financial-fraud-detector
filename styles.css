@@ -1041,3 +1041,20 @@ body{background:#f8fbfd;color:#10213b;font-family:"Plus Jakarta Sans","DM Sans",
 .action-row-refined .btn{min-width:92px}
 .action-row-refined .btn-primary{box-shadow:0 6px 14px rgba(255,87,26,.2)}
 @media(max-width:620px){.case-card-head{flex-direction:column}.assessment-meta{flex-wrap:wrap}.assessment-meta span:last-child{margin-left:0}.action-row-refined .btn{flex:1}}
+.drawer{max-height:calc(100vh - 20px);overflow-y:auto;overscroll-behavior:contain}
+.drawer-section.risk-empty{display:block}
+.drawer-section.risk-empty .risk-score-row{margin-top:10px}
+.overview-page .ask-clario-wrap{display:none!important}
+.assistant-bar{display:none!important}
+.search-trigger{display:none!important}
+.app-shell{min-height:100vh;align-items:flex-start}
+.sidebar{position:sticky;top:0;height:100vh;max-height:100vh;overflow-y:auto}
+.main{min-height:100vh;overflow-x:hidden}
+.page{padding-top:24px;padding-bottom:32px}
+.page-subtitle{margin-bottom:20px}
+.data-card-section,.health-modules,.money-flow-panel,.cockpit-grid,.lower-grid,.runs-panel{margin-top:18px}
+@media(max-width:700px){
+  .sidebar{position:fixed;z-index:20;height:100vh}
+  .main{margin-left:0}
+  .topbar{padding-left:14px}
+}

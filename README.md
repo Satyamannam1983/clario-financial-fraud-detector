@@ -150,6 +150,7 @@ Password: ClarioDemo123!
 | `MONGODB_DB` | Optional | Database name. Default: `ledgerpilot` |
 | `MISTRAL_API_KEY` | Optional | Mistral AI key for narrative assessments. Without it, the system uses deterministic fallbacks. |
 | `MISTRAL_MODEL` | Optional | Mistral model ID. Default: `mistral-small-2506` |
+| `CLARIO_SESSION_SECRET` | Recommended | Secret used to sign serverless login sessions. Set a long random value in production. |
 | `PORT` | Optional | Server port. Default: `3001` |
 
 See `.env.example` for the full template.

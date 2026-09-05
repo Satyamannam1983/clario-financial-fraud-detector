@@ -227,7 +227,7 @@ async function handle(message, options = {}) {
   const inReports = context.page === 'report' || context.page === 'reports';
   const lowerText = text.toLowerCase();
   const actionCommand = /^\s*(hold|block|freeze|approve|escalate|resolve|release)\b/.test(lowerText) || /run reconciliation|place .* on hold|put .* on hold/.test(lowerText);
-  if (inReports && !actionCommand) {
+  if (inReports && !actionCommand && !intent.exception_id) {
     const result = await pageQueryResponse('reports', text);
     return { success: true, agent: 'query', action: 'page_query', response: result.final_response || result.error || 'Report data unavailable.', confidence: null };
   }

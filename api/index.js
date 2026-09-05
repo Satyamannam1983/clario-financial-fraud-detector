@@ -39,6 +39,7 @@ loadEnv();
 const root = path.join(__dirname, '..');
 const sessions = new Map();
 const users = new Map([['demo@clario.ai', { name: 'Arjun Shah', email: 'demo@clario.ai', role: 'Finance admin' }]]);
+const sessionSecret = process.env.CLARIO_SESSION_SECRET || 'clario-demo-session-secret-change-me';
 const audit = [];
 const actions = new Map();
 const investigations = new Map();
@@ -101,7 +102,24 @@ function readBody(req) {
 
 function auth(req) {
   const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-  return token && sessions.has(token) ? sessions.get(token) : null;
+  if (!token) return null;
+  if (sessions.has(token)) return sessions.get(token);
+  const [encoded, signature] = token.split('.');
+  if (!encoded || !signature) return null;
+  const expected = crypto.createHmac('sha256', sessionSecret).update(encoded).digest('base64url');
+  if (signature.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return null;
+  try {
+    const user = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8'));
+    return user && user.email ? user : null;
+  } catch {
+    return null;
+  }
+}
+
+function createSessionToken(user) {
+  const encoded = Buffer.from(JSON.stringify({ ...user, iat: Date.now() }), 'utf8').toString('base64url');
+  const signature = crypto.createHmac('sha256', sessionSecret).update(encoded).digest('base64url');
+  return `${encoded}.${signature}`;
 }
 
 function recordAudit(title, detail, kind = 'done') {
@@ -230,7 +248,7 @@ async function handler(req, res) {
     if (url.pathname === '/api/auth/login' && req.method === 'POST') {
       const body = await readBody(req);
       if (body.email?.trim().toLowerCase() !== 'demo@clario.ai' || body.password !== 'ClarioDemo123!') return json(res, 401, { error: 'Invalid demo credentials' });
-      const token = crypto.randomBytes(24).toString('hex');
+      const token = createSessionToken(user);
       const user = { name: 'Arjun Shah', email: 'demo@clario.ai', role: 'Finance admin' };
       sessions.set(token, user);
       recordAudit('User signed in', user.email, 'active');
@@ -246,7 +264,7 @@ async function handler(req, res) {
       if (users.has(email)) return json(res, 409, { error: 'An account already exists for this email' });
       const user = { name: name || email.split('@')[0], email, role: 'Finance admin' };
       users.set(email, user);
-      const token = crypto.randomBytes(24).toString('hex');
+      const token = createSessionToken(user);
       sessions.set(token, user);
       recordAudit('User account created', email, 'active');
       recordActivity('User registered', `${user.name} · ${email}`, 'done');
