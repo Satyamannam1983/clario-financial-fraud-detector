@@ -1,0 +1,22 @@
+{
+  "name": "clario",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Clario — AI Finance Controller. Automated reconciliation, exception investigation and risk intelligence powered by a multi-agent AI architecture.",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "echo 'No build step required — static frontend served by Node.'"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "mongodb": "^7.6.0"
+  },
+  "optionalDependencies": {},
+  "notes": {
+    "mistral": "Mistral API is called via native fetch (Node 18+). No SDK required. Set MISTRAL_API_KEY env var to enable LLM features. Without it, the system runs fully on deterministic fallbacks.",
+    "vercel": "This project uses a custom Node HTTP server. For Vercel deployment see vercel.json and the README deployment section."
+  }
+}
