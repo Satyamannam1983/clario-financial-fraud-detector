@@ -688,8 +688,8 @@ body{background:#f8fbfd;color:#10213b;font-family:"Plus Jakarta Sans","DM Sans",
   position:fixed;
   right:24px;
   bottom:84px;
-  width:min(400px,calc(100vw - 32px));
-  height:min(560px,calc(100vh - 120px));
+  width:min(340px,calc(100vw - 32px));
+  height:min(410px,calc(100vh - 120px));
   display:flex;
   flex-direction:column;
   z-index:60;
@@ -724,7 +724,19 @@ body{background:#f8fbfd;color:#10213b;font-family:"Plus Jakarta Sans","DM Sans",
 .chat-title b{display:block;color:#10213b;font-size:13px;font-weight:800}
 .chat-title small{display:block;margin-top:2px;color:#71859a;font-size:10px}
 .reports-page{padding-right:330px}
-.reports-page .report-chat-card{position:fixed;right:24px;top:92px;bottom:24px;width:290px;margin:0;display:flex;flex-direction:column;z-index:20}
+.reports-page .report-chat-card{
+  position:fixed;
+  right:24px;
+  top:92px;
+  bottom:auto;
+  width:310px;
+  height:420px;
+  margin:0;
+  display:flex;
+  flex-direction:column;
+  z-index:80;
+  box-shadow:0 16px 36px rgba(16,33,59,.14);
+}
 .reports-page .report-chat-card .inv-chat-messages{flex:1;min-height:0}
 .report-quick-prompts{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px 0}
 .report-prompt{border:1px solid #d8e5ee;background:#f7fbfd;border-radius:999px;padding:7px 9px;color:#16466a;font-size:11px;cursor:pointer}
@@ -745,7 +757,19 @@ body{background:#f8fbfd;color:#10213b;font-family:"Plus Jakarta Sans","DM Sans",
 .health-status-grid .fallback{color:#ad6200}
 .fallback-notice{margin:12px 0;padding:10px 12px;border:1px solid #f3d39e;border-radius:9px;background:#fff8e9;color:#8a5b00;font-size:11px;font-weight:700}
 .fallback-notice.live-notice{border-color:#c9e8d8;background:#f2fbf6;color:#157b47}
-@media(max-width:1100px){.reports-page{padding-right:0}.reports-page .report-chat-card{position:relative;right:auto;top:auto;bottom:auto;width:auto;margin-top:18px;height:520px}}
+@media(max-width:1100px){
+  .reports-page{padding-right:24px}
+  .reports-page .report-chat-card{
+    position:fixed;
+    right:14px;
+    top:82px;
+    bottom:auto;
+    width:min(340px,calc(100vw - 28px));
+    height:min(390px,calc(100vh - 90px));
+    margin:0;
+    z-index:80;
+  }
+}
 @media(max-width:560px){.exception-ask-card{align-items:flex-start;flex-direction:column}}
 @media(max-width:560px){.health-status-grid{grid-template-columns:1fr}}
 .chat-close{
@@ -762,10 +786,10 @@ body{background:#f8fbfd;color:#10213b;font-family:"Plus Jakarta Sans","DM Sans",
 .chat-messages{
   flex:1;
   overflow-y:auto;
-  padding:16px 14px;
+  padding:10px;
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:7px;
   background:#f8fbfd;
 }
 .chat-msg{display:flex}
@@ -773,10 +797,10 @@ body{background:#f8fbfd;color:#10213b;font-family:"Plus Jakarta Sans","DM Sans",
 .chat-msg.assistant{justify-content:flex-start}
 .chat-bubble{
   max-width:82%;
-  padding:10px 13px;
+  padding:8px 10px;
   border-radius:12px;
-  font-size:12px;
-  line-height:1.5;
+  font-size:11px;
+  line-height:1.35;
   white-space:pre-wrap;
   word-break:break-word;
 }
@@ -801,26 +825,26 @@ body{background:#f8fbfd;color:#10213b;font-family:"Plus Jakarta Sans","DM Sans",
   flex:none;
   display:flex;
   gap:8px;
-  padding:12px;
+  padding:8px;
   border-top:1px solid #eef2f5;
   background:#fff;
 }
 .chat-composer input{
   flex:1;
   min-width:0;
-  height:40px;
+  height:34px;
   padding:0 12px;
   border:1px solid #e2ebf1;
   border-radius:10px;
   background:#f8fbfd;
   color:#10213b;
-  font-size:12px;
+  font-size:11px;
   outline:none;
 }
 .chat-composer input:focus{border-color:#ff8a3d;box-shadow:0 0 0 3px rgba(255,107,26,.12)}
 .chat-composer button{
-  height:40px;
-  padding:0 16px;
+  height:34px;
+  padding:0 12px;
   border:0;
   border-radius:10px;
   background:#ff6b1a;
@@ -850,16 +874,16 @@ body{background:#f8fbfd;color:#10213b;font-family:"Plus Jakarta Sans","DM Sans",
 .investigation-chat-card{margin-top:20px;display:flex;flex-direction:column;border-radius:16px;overflow:hidden}
 .inv-chat-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid #eef2f5;background:#fbfdfe}
 .inv-chat-head h2{font-size:14px;color:#10213b;margin-top:4px}
-.inv-chat-messages{height:320px;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:10px;background:#f8fbfd}
+.inv-chat-messages{height:230px;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:7px;background:#f8fbfd}
 .inv-chat-messages .chat-msg{display:flex}
 .inv-chat-messages .chat-msg.user{justify-content:flex-end}
 .inv-chat-messages .chat-msg.assistant{justify-content:flex-start}
 .inv-chat-messages .chat-bubble{max-width:86%}
 .inv-chat-messages .chat-bubble b{color:#ff571a}
-.inv-chat-composer{display:flex;gap:8px;padding:12px;border-top:1px solid #eef2f5;background:#fff}
-.inv-chat-composer input{flex:1;min-width:0;height:40px;padding:0 12px;border:1px solid #e2ebf1;border-radius:10px;background:#f8fbfd;color:#10213b;font-size:12px;outline:none}
+.inv-chat-composer{display:flex;gap:6px;padding:8px;border-top:1px solid #eef2f5;background:#fff}
+.inv-chat-composer input{flex:1;min-width:0;height:34px;padding:0 10px;border:1px solid #e2ebf1;border-radius:8px;background:#f8fbfd;color:#10213b;font-size:11px;outline:none}
 .inv-chat-composer input:focus{border-color:#ff8a3d;box-shadow:0 0 0 3px rgba(255,107,26,.12)}
-.inv-chat-composer button{height:40px;padding:0 16px;border:0;border-radius:10px;background:#ff6b1a;color:#fff;font-size:12px;font-weight:700;cursor:pointer}
+.inv-chat-composer button{height:34px;padding:0 12px;border:0;border-radius:8px;background:#ff6b1a;color:#fff;font-size:11px;font-weight:700;cursor:pointer}
 .inv-chat-composer button:hover{background:#f45b0b}
 /* ===== Reports analytics ===== */
 .report-compare .section-head .status{font-size:11px}
@@ -1048,8 +1072,9 @@ body{background:#f8fbfd;color:#10213b;font-family:"Plus Jakarta Sans","DM Sans",
 .assistant-bar{display:none!important}
 .search-trigger{display:none!important}
 .app-shell{min-height:100vh;align-items:flex-start}
-.sidebar{position:sticky;top:0;height:100vh;max-height:100vh;overflow-y:auto}
+.sidebar{position:fixed;left:0;top:0;height:100vh;max-height:100vh;overflow-y:auto;overscroll-behavior:contain}
 .main{min-height:100vh;overflow-x:hidden}
+.main{margin-left:244px}
 .page{padding-top:24px;padding-bottom:32px}
 .page-subtitle{margin-bottom:20px}
 .data-card-section,.health-modules,.money-flow-panel,.cockpit-grid,.lower-grid,.runs-panel{margin-top:18px}
@@ -1058,3 +1083,20 @@ body{background:#f8fbfd;color:#10213b;font-family:"Plus Jakarta Sans","DM Sans",
   .main{margin-left:0}
   .topbar{padding-left:14px}
 }
+.activity-title-row{display:flex;align-items:flex-start;justify-content:space-between}
+.activity-title-row .page-subtitle{margin-bottom:16px}
+.agent-strip{padding:12px 16px;border:1px solid #e2ebf1;border-radius:12px;background:#fff;margin-bottom:14px}
+.agent-strip>.eyebrow{margin-bottom:8px}
+.agent-strip-grid{display:flex;gap:8px;flex-wrap:wrap}
+.agent-strip .agent-card{padding:7px 9px;border-radius:8px;gap:7px;min-width:145px;flex:1}
+.agent-strip .agent-card small{display:none}
+.agent-strip .agent-card b{font-size:10px}
+.agent-strip .agent-card strong{font-size:11px}
+.activity-layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(260px,.8fr);gap:14px;align-items:start}
+.activity-live-card .activity-checklist{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.activity-live-card .activity-check{padding:8px 10px}
+.activity-live-card .activity-actions{margin-left:39px}
+.activity-chat-card{position:sticky;top:76px}
+.activity-chat-card h2{margin:0 0 5px;color:#10213b;font-size:16px}
+.activity-chat-card .chat-bubble{font-size:11px}
+@media(max-width:900px){.activity-layout{grid-template-columns:1fr}.activity-chat-card{position:static}}
