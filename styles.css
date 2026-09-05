@@ -721,8 +721,19 @@ body{background:#f8fbfd;color:#10213b;font-family:"Plus Jakarta Sans","DM Sans",
 .report-prompt:hover{border-color:#ff8a3d;background:#fff7f1}
 .exception-ask-card{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:18px}
 .exception-ask-card p{margin:6px 0 0;color:#71859a;font-size:13px}
+.why-action{border:0;background:transparent;color:#ff571a;font-size:10px;font-weight:800;cursor:pointer;padding:2px 0;text-align:left}
+.why-action:hover{text-decoration:underline}
+.ai-card-refined .risk-score-row{cursor:pointer}
+.system-health-card{margin-top:18px}
+.health-status-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.health-status-grid span{padding:11px 12px;border:1px solid #e5edf3;border-radius:10px;background:#fbfdfe;color:#60758a;font-size:12px;font-weight:700}
+.health-status-grid .healthy{color:#157b47}
+.health-status-grid .fallback{color:#ad6200}
+.fallback-notice{margin:12px 0;padding:10px 12px;border:1px solid #f3d39e;border-radius:9px;background:#fff8e9;color:#8a5b00;font-size:11px;font-weight:700}
+.fallback-notice.live-notice{border-color:#c9e8d8;background:#f2fbf6;color:#157b47}
 @media(max-width:1100px){.reports-page{padding-right:0}.reports-page .report-chat-card{position:relative;right:auto;top:auto;bottom:auto;width:auto;margin-top:18px;height:520px}}
 @media(max-width:560px){.exception-ask-card{align-items:flex-start;flex-direction:column}}
+@media(max-width:560px){.health-status-grid{grid-template-columns:1fr}}
 .chat-close{
   width:28px;height:28px;
   display:grid;place-items:center;

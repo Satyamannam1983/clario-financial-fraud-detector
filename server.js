@@ -308,7 +308,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') { res.writeHead(204, { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type, Authorization', 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS', 'Access-Control-Max-Age': '86400' }); res.end(); return; }
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   try {
-    if (url.pathname === '/api/health') return json(res, 200, { ok: true, service: 'clario-api', database: databaseReady ? 'connected' : 'demo', mistral: ai.available() });
+    if (url.pathname === '/api/health') return json(res, 200, { ok: true, service: 'clario-api', database: databaseReady ? 'connected' : 'demo', mistral: ai.available(), aiMode: ai.available() ? 'mistral' : 'deterministic', message: ai.available() ? 'Mistral is configured.' : 'Mistral API key is not configured; deterministic evidence mode is active.' });
     if (url.pathname === '/api/auth/login' && req.method === 'POST') {
       const body = await readBody(req);
       if (body.email?.trim().toLowerCase() !== 'demo@clario.ai' || body.password !== 'ClarioDemo123!') return json(res, 401, { error: 'Invalid demo credentials' });
@@ -346,7 +346,7 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/ai/controller' && req.method === 'POST') {
       const body = await readBody(req);
       const result = await ai.handleController(body.message || body.prompt || '', { context: body.context || {} });
-      return json(res, 200, result);
+      return json(res, 200, { ...result, aiMode: ai.available() ? 'mistral' : 'deterministic' });
     }
     if (url.pathname === '/api/dashboard' || url.pathname === '/api/dashboard/summary') {
       const pipeline = await reconciliationPipeline();
